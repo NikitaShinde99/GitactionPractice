@@ -1,14 +1,18 @@
 {
-  "name": "playwright_1",
+  "name": "playwright-patient-registration",
   "version": "1.0.0",
+  "description": "Playwright tests for patient registration",
   "main": "index.js",
-  "scripts": {},
-  "keywords": [],
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report"
+  },
+  "keywords": ["playwright", "testing", "automation"],
   "author": "",
   "license": "ISC",
-  "description": "",
   "devDependencies": {
-    "@playwright/test": "^1.54.1",
-    "@types/node": "^24.1.0"
+    "@playwright/test": "^1.40.0"
   }
 }
