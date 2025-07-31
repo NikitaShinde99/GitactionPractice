@@ -1,99 +1,38 @@
 name: Patient Registration Test
-description: Automation test for Patient Registration - Mandatory Fields
 
-test_config:
-  name: "Patient Registration – Mandatory Fields"
-  url: "https://stage_ketamin.uat.provider.ecarehealth.com/"
-  browser: "chromium"
-  headless: false
-  timeout: 30000
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
 
-credentials:
-  username: "amol.shete+TP@medarch.com"
-  password: "Test@123$"
-
-test_data:
-  patient:
-    first_name: "Agam"
-    last_name: "Mishra"
-    date_of_birth: "01-01-1990"
-    gender: "Male"
-  contact:
-    mobile: "9876543210"
-    email: "agam@mailinator.com"
-
-test_steps:
-  - step: "Navigate to URL"
-    action: "navigate"
-    target: "https://stage_ketamin.uat.provider.ecarehealth.com/"
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
     
-  - step: "Login with credentials"
-    action: "login"
-    username_selector: "[data-testid='username'], input[type='email'], input[name='email']"
-    password_selector: "[data-testid='password'], input[type='password'], input[name='password']"
-    submit_selector: "button[type='submit'], input[type='submit'], .login-btn"
-    
-  - step: "Click Let's Get Started"
-    action: "click"
-    selector: "text=Let's Get Started, button:has-text('Let\\'s Get Started'), .get-started-btn"
-    
-  - step: "Click Create"
-    action: "click"
-    selector: "text=Create, button:has-text('Create'), .create-btn"
-    
-  - step: "Click New Patient"
-    action: "click"
-    selector: "text=New Patient, button:has-text('New Patient'), .new-patient-btn"
-    
-  - step: "Click Enter Patient Details"
-    action: "click"
-    selector: "text=Enter Patient Details, button:has-text('Enter Patient Details'), .patient-details-btn"
-    
-  - step: "Click Next"
-    action: "click"
-    selector: "text=Next, button:has-text('Next'), .next-btn"
-    
-  - step: "Fill First Name"
-    action: "fill"
-    selector: "input[name='firstName'], input[placeholder*='First Name'], #firstName"
-    value: "Agam"
-    
-  - step: "Fill Last Name"
-    action: "fill"
-    selector: "input[name='lastName'], input[placeholder*='Last Name'], #lastName"
-    value: "Mishra"
-    
-  - step: "Fill Date of Birth"
-    action: "fill"
-    selector: "input[name='dateOfBirth'], input[placeholder*='Date'], input[type='date'], #dateOfBirth"
-    value: "01-01-1990"
-    
-  - step: "Select Gender"
-    action: "select"
-    selector: "select[name='gender'], #gender, .gender-dropdown"
-    value: "Male"
-    
-  - step: "Fill Mobile"
-    action: "fill"
-    selector: "input[name='mobile'], input[placeholder*='Mobile'], input[type='tel'], #mobile"
-    value: "9876543210"
-    
-  - step: "Fill Email"
-    action: "fill"
-    selector: "input[name='email'], input[placeholder*='Email'], input[type='email'], #email"
-    value: "agam@mailinator.com"
-    
-  - step: "Click Save"
-    action: "click"
-    selector: "text=Save, button:has-text('Save'), .save-btn, button[type='submit']"
-
-expected_results:
-  - "New patient is saved successfully"
-  - "Patient is visible in the patient list"
-  - "Success message or confirmation is displayed"
-
-assertions:
-  - selector: ".success-message, .patient-list, text=Patient saved"
-    expected: "visible"
-  - selector: "text=Agam Mishra, .patient-name:has-text('Agam')"
-    expected: "visible"
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+      
+    - name: Run Playwright tests
+      run: npx playwright test
+      env:
+        TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+        TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+        
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
