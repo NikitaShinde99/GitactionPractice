@@ -20,6 +20,7 @@ jobs:
         
     - name: Install dependencies
       run: npm install
+      working-directory: ./GitactionPractice
       
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
@@ -36,3 +37,5 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+
+  
