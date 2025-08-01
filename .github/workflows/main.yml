@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
   schedule:
-    - cron: '30 4 * * *'  # Runs daily at 10 AM IST
+    - cron: '30 4 * * *'
 
 jobs:
   run-tests:
@@ -22,11 +22,21 @@ jobs:
         with:
           node-version: 20
 
+      - name: Change to Playwright_1 directory
+        run: cd Playwright_1
+
       - name: Install dependencies
-        run: npm ci  # Better than 'npm install' for CI/CD
+        run: npm install
+        working-directory: Playwright_1
+
+      - name: Install playwright-test
+        run: npm install --save-dev @playwright/test
+        working-directory: Playwright_1
 
       - name: Install only Chrome for Playwright
         run: npx playwright install chromium
+        working-directory: Playwright_1
 
-      - name: Run Playwright tests
-        run: npx playwright test --project=chromium
+      - name: Run Playwright tests on Chrome
+        run: npx playwright test tests/login.test.ts --project=chromium --config=playwright.config.ts
+        working-directory: Playwright_1
