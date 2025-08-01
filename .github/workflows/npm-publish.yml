@@ -1,104 +1,31 @@
-name: Playwright Login Tests
+name: Run Playwright Test on Chrome
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
-  schedule:
-    # Run tests daily at 9 AM UTC
-    - cron: '0 9 * * *'
+  workflow_dispatch:  # Manual trigger
+  schedule:           # Automatic run at 10:00 AM IST (4:30 AM UTC)
+    - cron: '30 4 * * *'  # UTC time
 
 jobs:
-  test:
-    timeout-minutes: 60
+  run-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    
-    - name: Cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-    
-    - name: Install dependencies
-      run: |
-        # Create package.json if it doesn't exist
-        if [ ! -f package.json ]; then
-          echo '{"name":"playwright-tests","version":"1.0.0","devDependencies":{"@playwright/test":"^1.40.0"},"scripts":{"test":"playwright test"}}' > package.json
-        fi
-        npm install
-        # Ensure Playwright is installed
-        npm install --save-dev @playwright/test
-    
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps chromium
-    
-    - name: Create Playwright config if not exists
-      run: |
-        if [ ! -f playwright.config.js ]; then
-          cat > playwright.config.js << 'EOF'
-        module.exports = {
-          testDir: './tests',
-          timeout: 30000,
-          use: {
-            headless: true,
-            viewport: { width: 1280, height: 720 },
-            screenshot: 'only-on-failure',
-            video: 'retain-on-failure',
-          },
-          projects: [
-            {
-              name: 'chromium',
-              use: { browserName: 'chromium' },
-            },
-          ],
-          reporter: [
-            ['html'],
-            ['json', { outputFile: 'test-results.json' }]
-          ],
-        };
-        EOF
-        fi
-    
-    - name: Run Playwright Login Tests
-      run: npx playwright test
-      env:
-        CI: true
-        # Add any environment variables for your tests
-        BASE_URL: https://qa.app.psynap-sys.com
-    
-    - name: Upload Playwright Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
-    
-  #  - name: Upload Test Results
-   #   uses: actions/upload-artifact@v4
-     # if: always()
-    #  with:
-    #    name: test-results
-    #    path: test-results/
-    #    retention-days: 30
-    
-   # - name: Upload Screenshots
-     # uses: actions/upload-artifact@v4
-      #if: failure()
-      #with:
-       # name: screenshots
-        #path: test-results/
-        #retention-days: 30
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install playwright-test
+        run: npm install --save-dev @playwright/test
+
+      - name: Install only Chrome for Playwright
+        run: npx playwright install chromium
+
+      - name: Run Playwright tests on Chrome
+        run: npx playwright test tests/login.spec.js --project=chromium --config=playwright.config.ts
